@@ -84,6 +84,39 @@ function commentCreate(content, author, post) {
     })
 }
 
+function likeCreate(author, post) {
+  likeDetail = {author: author, post: post}
+
+  var like = new Like(likeDetail);
+
+  like.save(function (err) {
+    if (err) {
+      cb(err, null)
+      return
+    }
+  })
+}
+
+function friendCreate(sender, reciever, response) {
+  friendDetail = {sender: sender, reciever: reciever}
+
+  if (response == 1) {
+    friendDetail.response = response;
+
+    var friend = new Friend(friendDetail);
+
+    friend.save(function (err) {
+      if (err) {
+        cb(err, null)
+        return
+      }
+      console.log('New Friend request: ' + friend);
+      friends.push(friend);
+      cb(null, friend)
+    })
+  }
+}
+
 function createGenreAuthors(cb) {
     async.series([
         function(callback) {
