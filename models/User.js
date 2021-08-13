@@ -8,9 +8,9 @@ var UserSchema = new Schema(
             type: String,
             required: [true, 'Firstname is required.']
         },
-        SecondName: {
+        lastName: {
             type: String,
-            required: [true, 'Secondname is required.']
+            required: [true, 'Lastname is required.']
         },
         password: {
             type: String,

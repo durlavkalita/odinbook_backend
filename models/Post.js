@@ -8,7 +8,8 @@ var PostSchema = new Schema(
             type: String,
             required: [true, 'Post must have content.']
         },
-        author: { type: Schema.Types.ObjectId, ref:'User' },
+        timestamp: { type: Date, default: Date.now },
+        author: { type: Schema.Types.ObjectId, ref:'User', required: true},
         comments: [{ type: Schema.Types.ObjectId, ref:'Comment' }],
         likes: [{ type: Schema.Types.ObjectId, ref:'Like' }],
     }

@@ -8,8 +8,9 @@ var CommentSchema = new Schema(
             type: String,
             required: [true, 'Comment must have content.']
         },
-        author: { type: Schema.Types.ObjectId, ref:'User' },
-        post: { type: Schema.Types.ObjectId, ref:'Post' },
+        timestamp: { type: Date, default: Date.now },
+        author: { type: Schema.Types.ObjectId, ref:'User', required: true },
+        post: { type: Schema.Types.ObjectId, ref:'Post', required: true },
     }
 );
 
