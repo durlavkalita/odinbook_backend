@@ -1,10 +1,11 @@
 var Comment = require('../models/Comment');
 var Post = require('../models/Post');
 const {body, validationResult} = require('express-validator');
+const jwt = require('jsonwebtoken');
 
 exports.comment_create = [
   body('content', 'Enter comment content').trim().isLength({min:1}).escape(),
-  (req,res,next)=> {
+  async (req,res,next)=> {
     const errors = validationResult(req);
     if(!errors.isEmpty()){
       res.status(401).json({
@@ -14,30 +15,49 @@ exports.comment_create = [
       return;
     }
     else {
+      const post = await Post.findById(req.params.postid);
+      if(!post) {
+        return res.status(404).json({err: "Post not found"});
+      }
       var comment = new Comment(
         {
-          body: req.body.content,
-          author: req.locals.username,
+          content: req.body.content,
+          author: req.body.author,
           post: req.params.postid
         }
       );
-      comment.save(err=>{
-        if(err) {return next(err);}
-        res.status(200).json({message: "Comment created"})
+      jwt.verify(req.token, 'secretkey', (err,authData)=>{
+        if(err) {
+            res.sendStatus(403);
+        } else {
+            comment.save(error => {
+                if(error){return next(error);}
+                res.status(200).json({message: "Comment Created"})
+            });
+        }
       });
     }
   }
 ]
 
   
-exports.single_post_comments = function(req,res,next) {
+exports.single_post_comments = async (req,res,next) => {
   try {
     const post = await Post.findById(req.params.postid);
     if(!post) {
       return res.status(404).json({err: "Post not found"});
     }
-    const comments = post.comments;
-    res.status(200).json({comments});
+    const comments = await Comment.find({post: post});
+    if(!comments) {
+      return res.status(404).json({err: "No comments not found"});
+    }
+    jwt.verify(req.token, 'secretkey', (err,authData)=>{
+      if(err) {
+          res.sendStatus(403);
+      } else {
+        res.status(200).json({comments});
+      }
+    });
   } catch (error) {
     next(error);
   }

@@ -12,6 +12,11 @@ var UserSchema = new Schema(
             type: String,
             required: [true, 'Lastname is required.']
         },
+        email: {
+            type: String,
+            required: [true, 'Email is required'],
+            unique: true
+        },
         password: {
             type: String,
             required: [true, 'Enter a valid password.']
@@ -19,9 +24,8 @@ var UserSchema = new Schema(
         profilePhoto: {
             type: String
         },
-        friends: [{type: Schema.Types.ObjectId, ref:'User'}],
-        posts: [{ type: Schema.Types.ObjectId, ref:'Post' }],
-        comments: [{ type: Schema.Types.ObjectId, ref:'Comment' }],
+        created_at: { type: Date, default: Date.now },
+        friends: [{type: Schema.Types.ObjectId, ref:'User'}]
     }
 );
 

@@ -4,9 +4,9 @@ var Schema = mongoose.Schema;
 
 var FriendSchema = new Schema(
     {
-        sender: { type: Schema.Types.ObjectId, ref:'User' },
-        reciever: { type: Schema.Types.ObjectId, ref:'User' },
-        response: { type: boolean }
+        sender: { type: Schema.Types.ObjectId, ref:'User', required: true },
+        reciever: { type: Schema.Types.ObjectId, ref:'User', required: true },
+        response: { type: Boolean, default: false }
     }
 );
 
