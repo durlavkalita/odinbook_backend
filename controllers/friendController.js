@@ -19,15 +19,9 @@ exports.friend_create = async (req,res,next) => {
               reciever: req.params.userid,
             }
           );
-          jwt.verify(req.token, 'secretkey', (err,authData)=>{
-            if(err) {
-                res.sendStatus(403);
-            } else {
-              friend.save(err=>{
-                if(err) {return next(err);}
-                res.status(200).json({message: "Friend request sent"})
-              });
-            }
+          friend.save(err=>{
+            if(err) {return next(err);}
+            res.status(200).json({message: "Friend request sent"})
           });
       } catch (error) {
         next(error);
@@ -40,13 +34,7 @@ exports.friend_request_list = async (req,res,next) => {
     if(!requests) {
       return res.status(404).json({err: "Could not found"});
     }
-    jwt.verify(req.token, 'secretkey', (err,authData)=>{
-      if(err) {
-          res.sendStatus(403);
-      } else {
-        res.status(200).json({requests});
-      }
-    });
+    res.status(200).json({requests});
   } catch (error) {
     next(error);
   }
@@ -58,39 +46,33 @@ exports.friend_request_response = async (req,res,next) => {
     if(!request) {
       return res.status(404).json({error: "invalid request"})
     }
-    jwt.verify(req.token, 'secretkey', async (err,authData)=>{
-      if(err) {
-          res.sendStatus(403);
-      } else {
-        if(req.body.response == true) {
-          const user1 = await User.findByIdAndUpdate(request.sender, 
-            {$push: {"friends": request.reciever}},
-            {safe: true, upsert: true, new : true},
-            function(err, model) {
-                console.log(err);
-            }
-          );
-          const user2 = await User.findByIdAndUpdate(request.reciever, 
-            {$push: {"friends": request.sender}},
-            {safe: true, upsert: true, new : true},
-            function(err, model) {
-                console.log(err);
-            }
-          );
-          res.status(200).json({message: "Friend added"});
+    if(req.body.response == true) {
+      const user1 = await User.findByIdAndUpdate(request.sender, 
+        {$push: {"friends": request.reciever}},
+        {safe: true, upsert: true, new : true},
+        function(err, model) {
+            console.log(err);
         }
-        else {
-          try {
-            await Friend.findByIdAndRemove(req.params.friendid, function(err){
-                if(err) {next(err);}
-                res.status(200).json({msg: "request deleted"});
-            });
-          } catch (error) {
-              next(error);
-          }
+      );
+      const user2 = await User.findByIdAndUpdate(request.reciever, 
+        {$push: {"friends": request.sender}},
+        {safe: true, upsert: true, new : true},
+        function(err, model) {
+            console.log(err);
         }
+      );
+      res.status(200).json({message: "Friend added"});
+    }
+    else {
+      try {
+        await Friend.findByIdAndRemove(req.params.friendid, function(err){
+            if(err) {next(err);}
+            res.status(200).json({msg: "request deleted"});
+        });
+      } catch (error) {
+          next(error);
       }
-    });
+    }
   } catch (error) {
     next(error);
   }

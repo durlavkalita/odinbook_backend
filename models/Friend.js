@@ -10,10 +10,4 @@ var FriendSchema = new Schema(
     }
 );
 
-// FriendSchema
-// .virtual('url')
-// .get(function() {
-//     return '/friend/' + this._id;
-// })
-
 module.exports = mongoose.model('Friend', FriendSchema);

@@ -1,7 +1,5 @@
 var Post = require('../models/Post');
-var User = require('../models/User');
 const {body, validationResult} = require('express-validator');
-const jwt = require('jsonwebtoken');
 
 
 // POST create new post
@@ -26,15 +24,9 @@ exports.post_create = [
             if(req.body.image) {
                 post.image = req.body.image
             }
-            jwt.verify(req.token, 'secretkey', (err,authData)=>{
-                if(err) {
-                    res.sendStatus(403);
-                } else {
-                    post.save(error => {
-                        if(error){return next(error);}
-                        res.status(200).json({message: "Post Created"})
-                    });
-                }
+            post.save(error => {
+                if(error){return next(error);}
+                res.status(200).json({message: "Post Created"})
             });
         }
     }
@@ -47,13 +39,7 @@ exports.timeline_posts = async (req,res,next) => {
         if(!posts) {
             return res.status(404).json({error: "No posts found"});
         }
-        jwt.verify(req.token, 'secretkey', (err,authData)=>{
-            if(err) {
-                res.sendStatus(403);
-            } else {
-                res.status(200).json({posts})
-            }
-        });
+        res.status(200).json({posts})
     } catch (error) {
         next(error);
     }
@@ -66,13 +52,7 @@ exports.single_post = async (req,res,next) => {
         if(!post) {
             return res.status(404).json({error: "No post found with this id"});
         }
-        jwt.verify(req.token, 'secretkey', (err,authData)=>{
-            if(err) {
-                res.sendStatus(403);
-            } else {
-                res.status(200).json({post})
-            }
-        });
+        res.status(200).json({post});
     } catch (error) {
         next(error);
     }
@@ -85,13 +65,7 @@ exports.single_user_posts = async (req,res,next) => {
         if(!posts) {
             return res.status(404).json({error: "No posts found"});
         }
-        jwt.verify(req.token, 'secretkey', (err,authData)=>{
-            if(err) {
-                res.sendStatus(403);
-            } else {
-                res.status(200).json({posts});
-            }
-        });
+        res.status(200).json({posts});
     } catch (error) {
         next(error);
     }
@@ -100,15 +74,9 @@ exports.single_user_posts = async (req,res,next) => {
 // DELETE post
 exports.delete_post = async (req,res,next) => {
     try {
-        jwt.verify(req.token, 'secretkey', async (err,authData)=>{
-            if(err) {
-                res.sendStatus(403);
-            } else {
-                await Post.findByIdAndRemove(req.params.id, function(err){
-                    if(err) {next(err);}
-                    res.status(200).json({msg: "post deleted"});
-                });
-            }
+        await Post.findByIdAndRemove(req.params.id, function(err){
+            if(err) {next(err);}
+            res.status(200).json({msg: "post deleted"});
         });
     } catch (error) {
         next(error);
@@ -118,44 +86,29 @@ exports.delete_post = async (req,res,next) => {
 // POST like post
 exports.like_post = async (req,res,next) => {
     try {
-        jwt.verify(req.token, 'secretkey', async (err,authData)=>{
-            if(err) {
-                res.sendStatus(403);
-            } else {
-                const post = await Post.findById(req.params.postid);
-                if(post.likes.includes(req.body.author)) {
-                    // return res.json({msg: "includes"});
-                    await Post.findByIdAndUpdate(req.params.postid, 
-                        {$pull: {"likes": req.body.author}},
-                        {safe: true, new : true},
-                        function(err, model) {
-                            console.log(err);
-                        }
-                    );
-                    res.status(200).json({message: "Post unliked"});
-                } else {
-                    // return res.json({msg: "doesnot include"});
-                    await Post.findByIdAndUpdate(req.params.postid, 
-                        {$push: {"likes": req.body.author}},
-                        {safe: true, new : true},
-                        function(err, model) {
-                            console.log(err);
-                        }
-                    );
-                    res.status(200).json({message: "Post liked"});
+        const post = await Post.findById(req.params.postid);
+        if(post.likes.includes(req.body.author)) {
+            await Post.findByIdAndUpdate(req.params.postid, 
+                {$pull: {"likes": req.body.author}},
+                {safe: true, new : true},
+                function(err, model) {
+                    console.log(err);
                 }
-                // const post = await Post.findByIdAndUpdate(req.params.postid, 
-                //     {$push: {"likes": req.body.author}},
-                //     {safe: true, upsert: true, new : true},
-                //     function(err, model) {
-                //         console.log(err);
-                //     }
-                // );
-                if(!post) {
-                    return res.status(404).json({message: "Post not found"});
-                  }
+            );
+            res.status(200).json({message: "Post unliked"});
+        } else {
+            await Post.findByIdAndUpdate(req.params.postid, 
+                {$push: {"likes": req.body.author}},
+                {safe: true, new : true},
+                function(err, model) {
+                    console.log(err);
+                }
+            );
+            res.status(200).json({message: "Post liked"});
+        }
+        if(!post) {
+            return res.status(404).json({message: "Post not found"});
             }
-        });
     } catch (error) {
         next(error);
     }

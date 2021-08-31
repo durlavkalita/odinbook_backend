@@ -1,7 +1,6 @@
 var Comment = require('../models/Comment');
 var Post = require('../models/Post');
 const {body, validationResult} = require('express-validator');
-const jwt = require('jsonwebtoken');
 
 exports.comment_create = [
   body('content', 'Enter comment content').trim().isLength({min:1}).escape(),
@@ -26,15 +25,9 @@ exports.comment_create = [
           post: req.params.postid
         }
       );
-      jwt.verify(req.token, 'secretkey', (err,authData)=>{
-        if(err) {
-            res.sendStatus(403);
-        } else {
-            comment.save(error => {
-                if(error){return next(error);}
-                res.status(200).json({message: "Comment Created"})
-            });
-        }
+      comment.save(error => {
+          if(error){return next(error);}
+          res.status(200).json({message: "Comment Created"})
       });
     }
   }
@@ -51,13 +44,7 @@ exports.single_post_comments = async (req,res,next) => {
     if(!comments) {
       return res.status(404).json({err: "No comments not found"});
     }
-    jwt.verify(req.token, 'secretkey', (err,authData)=>{
-      if(err) {
-          res.sendStatus(403);
-      } else {
-        res.status(200).json({comments});
-      }
-    });
+    res.status(200).json({comments});
   } catch (error) {
     next(error);
   }
