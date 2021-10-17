@@ -9,18 +9,17 @@ var friend_controller = require('../controllers/friendController');
 require('../config/auth');
 
 // post routes //
-// POST create new post
-router.post('/posts', post_controller.post_create);    //done
 // GET all friends posts
-router.get('/posts', post_controller.timeline_posts);  //done
-// GET all single user posts
-router.get('/users/:userid/posts', post_controller.single_user_posts); //done
-// GET single post
-router.get('/posts/:postid', post_controller.single_post); //done
+router.get('/posts/:userid/feed', post_controller.get_posts);  //done
+// GET name of user
+router.get('/user/:userid/name', post_controller.get_user_name);  //done
+// POST create new post
+router.post('/posts', post_controller.create_post);    //done
 // DELETE post
-// router.delete('/posts/:postid', post_controller.delete_post);  //
+router.delete('/posts/:postid', post_controller.delete_post);  //
 // POST like post
 router.post('/posts/:postid/like', post_controller.like_post); //done
+
 
 
 // comment routes //
@@ -32,10 +31,10 @@ router.get('/posts/:postid/comments', comment_controller.single_post_comments); 
 
 // friend routes //
 // POST send friend request
-router.post('/user/:userid/friend', friend_controller.friend_create);
+router.post('/friends/:userid', friend_controller.friend_create);
 // GET all friend requests
-router.get('/user/:userid/friend', friend_controller.friend_request_list);
+router.get('/friends/:userid', friend_controller.friend_request_list);
 // POST friend request answer
-router.post('/friend/:friendid/response', friend_controller.friend_request_response);
+router.post('/friends/:friendid/response', friend_controller.friend_request_response);
 
 module.exports = router;

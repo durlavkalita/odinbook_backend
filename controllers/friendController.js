@@ -34,7 +34,7 @@ exports.friend_request_list = async (req,res,next) => {
     if(!requests) {
       return res.status(404).json({err: "Could not found"});
     }
-    res.status(200).json({requests});
+    res.status(200).json(requests);
   } catch (error) {
     next(error);
   }
@@ -48,26 +48,30 @@ exports.friend_request_response = async (req,res,next) => {
     }
     if(req.body.response == true) {
       const user1 = await User.findByIdAndUpdate(request.sender, 
-        {$push: {"friends": request.reciever}},
+        {$addToSet: {"friends": request.reciever}},
         {safe: true, upsert: true, new : true},
         function(err, model) {
             console.log(err);
         }
       );
       const user2 = await User.findByIdAndUpdate(request.reciever, 
-        {$push: {"friends": request.sender}},
+        {$addToSet: {"friends": request.sender}},
         {safe: true, upsert: true, new : true},
         function(err, model) {
             console.log(err);
         }
       );
+      const deleteRequest = await Friend.findByIdAndRemove(req.params.friendid, function(err){
+        if(err) {next(err);}
+        res.status(204).json({message: "request deleted"});
+      });
       res.status(200).json({message: "Friend added"});
     }
     else {
       try {
         await Friend.findByIdAndRemove(req.params.friendid, function(err){
             if(err) {next(err);}
-            res.status(200).json({msg: "request deleted"});
+            res.status(204).json({message: "request deleted"});
         });
       } catch (error) {
           next(error);

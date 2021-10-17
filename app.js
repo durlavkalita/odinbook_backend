@@ -13,7 +13,7 @@ var userRouter = require('./routes/user');
 
 var app = express();
 
-mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true});
+mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false});
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
@@ -27,5 +27,10 @@ app.use(passport.initialize());
 
 app.use('/api', passport.authenticate('jwt', { session: false }), apiRouter);
 app.use('/', userRouter);
+
+app.use(function (err, req, res, next) {
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
+})
 
 module.exports = app;

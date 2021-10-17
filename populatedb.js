@@ -14,7 +14,6 @@ var async = require('async')
 var User = require('./models/User')
 var Post = require('./models/Post')
 var Comment = require('./models/Comment')
-var Like = require('./models/Like')
 var Friend = require('./models/Friend')
 
 
@@ -28,10 +27,9 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 var users = []
 var posts = []
 var comments = []
-var likes = []
 var friends = []
 
-function userCreate(firstName, lastName, password, profilePhoto, friends, posts, comments, cb) {
+function userCreate(firstName, lastName, email, password, profilePhoto, friends, posts, comments, cb) {
     userDetail = {firstName: firstName, lastName: lastName, password:password}
     
     if (profilePhoto != false) userDetail.profilePhoto = profilePhoto
@@ -82,19 +80,6 @@ function commentCreate(content, author, post) {
             return
         }
     })
-}
-
-function likeCreate(author, post) {
-  likeDetail = {author: author, post: post}
-
-  var like = new Like(likeDetail);
-
-  like.save(function (err) {
-    if (err) {
-      cb(err, null)
-      return
-    }
-  })
 }
 
 function friendCreate(sender, reciever, response) {

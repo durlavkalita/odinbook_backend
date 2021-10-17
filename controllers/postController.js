@@ -1,9 +1,10 @@
 var Post = require('../models/Post');
+var User = require('../models/User');
 const {body, validationResult} = require('express-validator');
 
 
 // POST create new post
-exports.post_create = [
+exports.create_post = [
     body('content', 'Enter post content').trim().isLength({min:1}).escape(),
     (req,res,next) => {
         const errors = validationResult(req);
@@ -33,43 +34,34 @@ exports.post_create = [
 ]
 
 // GET all friends posts
-exports.timeline_posts = async (req,res,next) => {
+exports.get_posts = async (req,res,next) => {
     try {
-        const posts = await Post.find({}).sort({created_at:-1}); // getting all posts for now
+        const user = await User.findById(req.params.userid);
+        var timelineAuthors = user.friends;
+        timelineAuthors.push(req.params.userid);
+        var posts = await Post.find({author: timelineAuthors}).sort({created_at:-1});
         if(!posts) {
             return res.status(404).json({error: "No posts found"});
         }
-        res.status(200).json({posts})
-    } catch (error) {
-        next(error);
-    }
-} 
-
-// GET single post from id
-exports.single_post = async (req,res,next) => {
-    try {
-        const post = await Post.findById(req.params.postid);
-        if(!post) {
-            return res.status(404).json({error: "No post found with this id"});
-        }
-        res.status(200).json({post});
+        res.status(200).json(posts)
     } catch (error) {
         next(error);
     }
 }
 
-// GET all single user posts
-exports.single_user_posts = async (req,res,next) => {
+// GET user name
+exports.get_user_name = async (req,res,next) => {
     try {
-        const posts = await Post.find({"author":req.params.userid});
-        if(!posts) {
-            return res.status(404).json({error: "No posts found"});
+        const user = await User.findById(req.params.userid);
+        if(!user) {
+            return res.status(404).json({error: "User not found"});
         }
-        res.status(200).json({posts});
+        const name = user.firstName + " " + user.lastName;
+        res.status(200).json(name);
     } catch (error) {
-        next(error);
+        next(error)
     }
-} 
+}
 
 // DELETE post
 exports.delete_post = async (req,res,next) => {
@@ -95,10 +87,10 @@ exports.like_post = async (req,res,next) => {
                     console.log(err);
                 }
             );
-            res.status(200).json({message: "Post unliked"});
+            res.status(204).json({message: "Post unliked"});
         } else {
             await Post.findByIdAndUpdate(req.params.postid, 
-                {$push: {"likes": req.body.author}},
+                {$addToSet: {"likes": req.body.author}},
                 {safe: true, new : true},
                 function(err, model) {
                     console.log(err);

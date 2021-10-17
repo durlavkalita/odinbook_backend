@@ -1,4 +1,5 @@
 var User = require('../models/User');
+var Post = require('../models/Post');
 const {body, validationResult} = require('express-validator');
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
@@ -37,7 +38,7 @@ exports.register = [
                     const body = {_id: user._id, email: user.email};
                     const token = jwt.sign({ user: body }, 'secret');
                     
-                    return res.json({ token });
+                    return res.json({ token, body });
                 })
             });
         }
@@ -58,7 +59,7 @@ exports.login = async (req,res,next)=>{
                 const body = {_id: user._id, email: user.email};
                 const token = jwt.sign({ user: body }, 'secret');
 
-                return res.json({ token });
+                return res.json({ token, body });
             })
         } catch (error) {
             return next(error);
@@ -98,6 +99,20 @@ exports.single_user = async (req,res,next) => {
         next(error);
     }
 }
+
+// GET single user posts
+exports.single_user_posts = async (req,res,next) => {
+    try {
+        const user = await User.findById(req.params.userid);
+        const posts = await Post.find({author: user}).sort({created_at:-1});
+        if(!posts) {
+            return res.status(404).json({error: "No posts found"});
+        }
+        res.status(200).json(posts)
+    } catch (error) {
+        next(error);
+    }
+} 
 
 // DELETE user
 exports.delete_user = async (req,res,next) => {
