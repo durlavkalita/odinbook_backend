@@ -4,7 +4,10 @@ const { body, validationResult } = require("express-validator");
 
 exports.get_posts_list = async (req, res, next) => {
   try {
-    const posts = await Post.find().sort({ created_at: -1 });
+    const posts = await Post.find()
+      .populate("author", "id firstName lastName email")
+      .populate("liked_by")
+      .sort({ created_at: -1 });
     if (!posts) {
       return res.status(404).json({ error: "No posts found" });
     }
