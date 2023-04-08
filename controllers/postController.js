@@ -1,17 +1,38 @@
+const Comment = require("../models/Comment");
 const Post = require("../models/Post");
 
 const { body, validationResult } = require("express-validator");
+
+// exports.get_posts_list = async (req, res, next) => {
+//   try {
+//     const posts = await Post.find()
+//       .populate("author", "id firstName lastName email")
+//       .populate("liked_by", "id")
+//       .sort({ created_at: -1 });
+//     if (!posts) {
+//       return res.status(404).json({ error: "No posts found" });
+//     }
+//     res.status(200).json(posts);
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 exports.get_posts_list = async (req, res, next) => {
   try {
     const posts = await Post.find()
       .populate("author", "id firstName lastName email")
-      .populate("liked_by")
+      .populate("liked_by", "id")
       .sort({ created_at: -1 });
-    if (!posts) {
-      return res.status(404).json({ error: "No posts found" });
+
+    const postsWithComments = [];
+
+    for (const post of posts) {
+      const comments = await Comment.find({ post: post._id });
+      postsWithComments.push({ ...post._doc, comments });
     }
-    res.status(200).json(posts);
+
+    res.json(postsWithComments);
   } catch (error) {
     next(error);
   }
@@ -23,7 +44,9 @@ exports.get_post = async (req, res, next) => {
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
-    return res.status(200).json(post);
+    const comments = await Comment.find({ post: post._id });
+    postWithComments = { ...post._doc, comments };
+    return res.status(200).json(postWithComments);
   } catch (error) {
     next(error);
   }
@@ -61,6 +84,9 @@ exports.update_post = async (req, res, next) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
+    if (req.user.id != post.author) {
+      return res.json(404).json({ error: "You cannot modify this post" });
+    }
     // update the post fields
     // if (req.body.title) {
     //   post.title = req.body.title;
@@ -82,11 +108,15 @@ exports.update_post = async (req, res, next) => {
 
 exports.delete_post = async (req, res, next) => {
   try {
-    const post = await Post.findByIdAndDelete(req.params.id);
+    const post = await Post.findById(req.params.id);
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
-    return res.status(204).json(post);
+    if (req.user.id != post.author) {
+      return res.json(404).json({ error: "You cannot delete this post" });
+    }
+    const deletedPost = await Post.findByIdAndDelete(req.params.id);
+    return res.status(204).json(deletedPost);
   } catch (error) {
     next(error);
   }
@@ -108,7 +138,33 @@ exports.like_post = async (req, res, next) => {
     // return res.status(500).json({ error: "Server error" });
   }
 };
+exports.toggle_like_post = async (req, res, next) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user.id;
+    const post = await Post.findOne({ id: postId });
 
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const likedIndex = post.liked_by.indexOf(userId);
+
+    if (likedIndex === -1) {
+      // user has not liked post yet
+      post.liked_by.push(userId);
+    } else {
+      // user has already liked post, remove like
+      post.liked_by.splice(likedIndex, 1);
+    }
+
+    await post.save();
+
+    return res.status(200).json({ success: true, post });
+  } catch (error) {
+    return next(error);
+  }
+};
 exports.unlike_post = async (req, res, next) => {
   try {
     const post = await Post.findOneAndUpdate(

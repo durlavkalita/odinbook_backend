@@ -38,7 +38,9 @@ exports.update_comment = async (req, res, next) => {
     if (!comment) {
       return res.status(404).json({ error: "Comment not found" });
     }
-
+    if (req.user.id != comment.author) {
+      return res.json(404).json({ error: "You cannot modify this comment" });
+    }
     if (req.body.content) {
       comment.content = req.body.content;
     }
@@ -52,11 +54,15 @@ exports.update_comment = async (req, res, next) => {
 
 exports.delete_comment = async (req, res, next) => {
   try {
-    const comment = await Comment.findByIdAndDelete(req.params.id);
+    const comment = await Comment.findById(req.params.id);
     if (!comment) {
-      return res.status(404).json({ error: "comment not found" });
+      return res.status(404).json({ error: "Comment not found" });
     }
-    return res.status(204).json(comment);
+    if (req.user.id != comment.author) {
+      return res.json(404).json({ error: "You cannot delete this comment" });
+    }
+    const deletedComment = await Comment.findByIdAndDelete(req.params.id);
+    return res.status(204).json(deletedComment);
   } catch (error) {
     next(error);
   }

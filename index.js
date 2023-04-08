@@ -5,9 +5,11 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const middleware = require("./middleware");
 
+var authRouter = require("./routes/auth");
 var userRouter = require("./routes/user");
-var apiRouter = require("./routes/api");
-
+var postRouter = require("./routes/post");
+var commentRouter = require("./routes/comment");
+var friendRequestRouter = require("./routes/friendRequest");
 const port = process.env.PORT;
 
 app.use(cors());
@@ -26,15 +28,11 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.use("/", userRouter);
-app.use("/api", apiRouter);
-
-// app.use(function (err, req, res, next) {
-//   if (err){
-//     console.error(err.stack)
-//     res.status(500).send('Something broke!')
-//   }
-// });
+app.use("/", authRouter);
+app.use("/api/users", userRouter);
+app.use("/api/posts", postRouter);
+app.use("/api/comments", commentRouter);
+app.use("/api", friendRequestRouter);
 
 app.use(middleware.errorHandler);
 
