@@ -28,7 +28,10 @@ exports.get_posts_list = async (req, res, next) => {
     const postsWithComments = [];
 
     for (const post of posts) {
-      const comments = await Comment.find({ post: post._id });
+      const comments = await Comment.find({ post: post._id }).populate(
+        "author",
+        "id firstName lastName"
+      );
       postsWithComments.push({ ...post._doc, comments });
     }
 

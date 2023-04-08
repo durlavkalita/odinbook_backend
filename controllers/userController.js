@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const Post = require("../models/Post");
+const Comment = require("../models/Comment");
 
 // const { body, validationResult } = require("express-validator");
 
@@ -21,7 +23,22 @@ exports.get_user = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    return res.status(200).json(user);
+    const posts = await Post.find({ author: user.id })
+      .populate("author", "id firstName lastName")
+      .populate("liked_by", "id")
+      .sort({ created_at: -1 });
+
+    const postsWithComments = [];
+
+    for (const post of posts) {
+      const comments = await Comment.find({ post: post._id }).populate(
+        "author",
+        "id firstName lastName"
+      );
+      postsWithComments.push({ ...post._doc, comments });
+    }
+    const userWithPosts = { ...user._doc, postsWithComments };
+    return res.status(200).json(userWithPosts);
   } catch (error) {
     next(error);
   }
