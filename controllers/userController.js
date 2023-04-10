@@ -50,7 +50,9 @@ exports.update_user = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: "user not found" });
     }
-
+    if (req.user.id != user.id) {
+      return res.json(404).json({ error: "You cannot modify this data" });
+    }
     // update the user fields
     if (req.body.firstName) {
       user.firstName = req.body.firstName;
@@ -61,7 +63,7 @@ exports.update_user = async (req, res, next) => {
     if (req.body.profile_pic) {
       user.profile_pic = req.body.profile_pic;
     }
-
+    console.log(req.body);
     // save the updated user
     const updatedUser = await user.save();
     res.json(updatedUser);

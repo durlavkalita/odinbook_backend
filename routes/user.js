@@ -19,7 +19,8 @@ router.get(
   userController.get_user
 );
 router.patch(
-  "/:id",
+  "/:id/update",
+  getUserData,
   passport.authenticate("jwt", { session: false }),
   userController.update_user
 );
