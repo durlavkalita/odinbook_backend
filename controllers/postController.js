@@ -132,6 +132,7 @@ exports.like_post = async (req, res, next) => {
       { $addToSet: { liked_by: req.user.id } },
       { new: true }
     );
+    console.log(post);
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
@@ -145,7 +146,7 @@ exports.toggle_like_post = async (req, res, next) => {
   try {
     const postId = req.params.id;
     const userId = req.user.id;
-    const post = await Post.findOne({ id: postId });
+    const post = await Post.findById(postId);
 
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
