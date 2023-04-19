@@ -4,7 +4,11 @@ var User = require("../models/User");
 exports.friend_requests_list = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const friend_requests = await FriendRequest.find({ recipient: userId });
+    const friend_requests = await FriendRequest.find({
+      recipient: userId,
+    })
+      .populate("sender", "id firstName lastName profile_pic")
+      .populate("recipient", "id firstName lastName profile_pic");
     if (!friend_requests) {
       return res.status(404).json({ error: "No requests found" });
     }
@@ -17,7 +21,9 @@ exports.friend_requests_list = async (req, res, next) => {
 exports.friend_requests_sent_list = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const friend_requests = await FriendRequest.find({ sender: userId });
+    const friend_requests = await FriendRequest.find({ sender: userId })
+      .populate("sender", "id firstName lastName profile_pic")
+      .populate("recipient", "id firstName lastName profile_pic");
     if (!friend_requests) {
       return res.status(404).json({ error: "No requests found" });
     }
