@@ -85,8 +85,10 @@ exports.get_new_people = async (req, res, next) => {
     const friendIds = currentUser.friends;
     const friend_requests_received = await FriendRequest.find({
       recipient: userId,
-    });
-    const friend_requests_sent = await FriendRequest.find({ sender: userId });
+    }).populate("sender", "id");
+    const friend_requests_sent = await FriendRequest.find({
+      sender: userId,
+    }).populate("recipient", "id");
     var excludeFriendIds = [
       ...friendIds,
       ...friend_requests_received.map((item) => item.sender.id),
