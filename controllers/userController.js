@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
 const Comment = require("../models/Comment");
+const FriendRequest = require("../models/FriendRequest");
 
 // const { body, validationResult } = require("express-validator");
 
@@ -9,7 +10,7 @@ exports.get_users_list = async (req, res, next) => {
     // console.log(req.user.id);
     const users = await User.find();
     if (!users) {
-      return res.status(404).json({ error: "No posts found" });
+      return res.status(404).json({ error: "No users found" });
     }
     return res.status(200).json(users);
   } catch (error) {
@@ -67,6 +68,32 @@ exports.update_user = async (req, res, next) => {
     // save the updated user
     const updatedUser = await user.save();
     res.json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.get_new_people = async (req, res, next) => {
+  try {
+    // console.log(req.user.id);
+    const users = await User.find();
+    if (!users) {
+      return res.status(404).json({ error: "No users found" });
+    }
+    const currentUser = req.user;
+    const userId = currentUser.id;
+    const friendIds = currentUser.friends;
+    const friend_requests_received = await FriendRequest.find({
+      recipient: userId,
+    });
+    const friend_requests_sent = await FriendRequest.find({ sender: userId });
+    var excludeFriendIds = [
+      ...friendIds,
+      ...friend_requests_received.map((item) => item.sender.id),
+      ...friend_requests_sent.map((item) => item.recipient.id),
+    ];
+    filteredUser = users.filter((user) => !excludeFriendIds.includes(user.id));
+    return res.status(200).json(filteredUser);
   } catch (error) {
     next(error);
   }

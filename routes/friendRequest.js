@@ -3,10 +3,7 @@ var router = express.Router();
 const passport = require("passport");
 const { getUserData } = require("../middleware");
 
-var postController = require("../controllers/postController");
-var commentController = require("../controllers/commentController");
 var friendRequestController = require("../controllers/friendRequestController");
-var userController = require("../controllers/userController");
 
 require("../authStrategy");
 

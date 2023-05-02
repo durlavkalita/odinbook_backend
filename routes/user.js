@@ -14,6 +14,12 @@ router.get(
   userController.get_users_list
 );
 router.get(
+  "/find-people",
+  getUserData,
+  passport.authenticate("jwt", { session: false }),
+  userController.get_new_people
+);
+router.get(
   "/:id",
   passport.authenticate("jwt", { session: false }),
   userController.get_user
