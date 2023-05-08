@@ -21,7 +21,7 @@ const { body, validationResult } = require("express-validator");
 exports.get_posts_list = async (req, res, next) => {
   try {
     const posts = await Post.find()
-      .populate("author", "id firstName lastName email")
+      .populate("author", "id firstName lastName email profile_pic")
       .populate("liked_by", "id")
       .sort({ created_at: -1 });
 
