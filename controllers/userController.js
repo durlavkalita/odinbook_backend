@@ -25,7 +25,7 @@ exports.get_user = async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
     const posts = await Post.find({ author: user.id })
-      .populate("author", "id firstName lastName")
+      .populate("author", "id firstName lastName profile_pic")
       .populate("liked_by", "id")
       .sort({ created_at: -1 });
 
@@ -82,19 +82,20 @@ exports.get_new_people = async (req, res, next) => {
     }
     const currentUser = req.user;
     const userId = currentUser.id;
-    const friendIds = currentUser.friends;
+    const friendIds = currentUser.friends.map((id) => id.toString());
     const friend_requests_received = await FriendRequest.find({
       recipient: userId,
     }).populate("sender", "id");
     const friend_requests_sent = await FriendRequest.find({
       sender: userId,
     }).populate("recipient", "id");
-    var excludeFriendIds = [
-      ...friendIds,
+    var excludeIds = [
       ...friend_requests_received.map((item) => item.sender.id),
       ...friend_requests_sent.map((item) => item.recipient.id),
+      userId,
+      ...friendIds,
     ];
-    filteredUser = users.filter((user) => !excludeFriendIds.includes(user.id));
+    filteredUser = users.filter((user) => !excludeIds.includes(user.id));
     return res.status(200).json(filteredUser);
   } catch (error) {
     next(error);

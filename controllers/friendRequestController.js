@@ -77,7 +77,7 @@ exports.send_friend_request = async (req, res, next) => {
 exports.respond_friend_request = async (req, res, next) => {
   const friendRequestId = req.params.id;
   const { action } = req.body;
-
+  console.log(action);
   try {
     let friendRequest = await FriendRequest.findById(friendRequestId);
 
@@ -89,18 +89,40 @@ exports.respond_friend_request = async (req, res, next) => {
     if (!friendRequest.recipient.equals(req.user._id)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
-
     // Accept or decline the friend request
-    if (action === "accepted") {
+    if (action == "accepted") {
       // Add the sender to the recipient's friends list
-      await User.findByIdAndUpdate(friendRequest.recipient, {
-        $addToSet: { friends: friendRequest.sender },
-      });
-
+      const updateRecipient = User.findByIdAndUpdate(
+        friendRequest.recipient,
+        {
+          $push: { friends: friendRequest.sender },
+        },
+        { new: true },
+        (err, updatedPost) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log(updatedPost);
+          }
+        }
+      );
       // Add the recipient to the sender's friends list
-      await User.findByIdAndUpdate(friendRequest.sender, {
-        $addToSet: { friends: friendRequest.recipient },
-      });
+      const updateSender = User.findByIdAndUpdate(
+        friendRequest.sender,
+        {
+          $push: { friends: friendRequest.recipient },
+        },
+        { new: true },
+        (err, updatedPost) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log(updatedPost);
+          }
+        }
+      );
+
+      // await Promise.all([updateRecipient, updateSender])
     }
 
     // Delete the friend request

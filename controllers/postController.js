@@ -43,7 +43,9 @@ exports.get_posts_list = async (req, res, next) => {
 
 exports.get_post = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.id)
+      .populate("author", "id firstName lastName email profile_pic")
+      .populate("liked_by", "id");
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }

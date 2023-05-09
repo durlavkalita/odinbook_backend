@@ -9,7 +9,7 @@ const secretOrKey = process.env.SECRET || "secretKey";
 
 router.post("/register", (req, res, next) => {
   const { firstName, lastName, email, password } = req.body;
-
+  const profile_pic = "https://i.pravatar.cc/150?u=" + email;
   User.findOne({ email }, (err, existingUser) => {
     if (err) {
       return next(err);
@@ -19,7 +19,13 @@ router.post("/register", (req, res, next) => {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    const user = new User({ firstName, lastName, email, password });
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      password,
+      profile_pic,
+    });
 
     user.save((err) => {
       if (err) {
