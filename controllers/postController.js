@@ -76,7 +76,7 @@ exports.create_post = [
         if (error) {
           return next(error);
         }
-        return res.status(200).json({ message: "Post Created" });
+        return res.status(200).json(post);
       });
     }
   },
