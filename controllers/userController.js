@@ -3,11 +3,8 @@ const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const FriendRequest = require("../models/FriendRequest");
 
-// const { body, validationResult } = require("express-validator");
-
 exports.get_users_list = async (req, res, next) => {
   try {
-    // console.log(req.user.id);
     const users = await User.find();
     if (!users) {
       return res.status(404).json({ error: "No users found" });
@@ -64,7 +61,6 @@ exports.update_user = async (req, res, next) => {
     if (req.body.profile_pic) {
       user.profile_pic = req.body.profile_pic;
     }
-    console.log(req.body);
     // save the updated user
     const updatedUser = await user.save();
     res.json(updatedUser);
@@ -75,7 +71,6 @@ exports.update_user = async (req, res, next) => {
 
 exports.get_new_people = async (req, res, next) => {
   try {
-    // console.log(req.user.id);
     const users = await User.find();
     if (!users) {
       return res.status(404).json({ error: "No users found" });

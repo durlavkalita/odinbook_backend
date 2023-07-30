@@ -1,22 +1,7 @@
 const Comment = require("../models/Comment");
 const Post = require("../models/Post");
-
+const User = require("../models/User");
 const { body, validationResult } = require("express-validator");
-
-// exports.get_posts_list = async (req, res, next) => {
-//   try {
-//     const posts = await Post.find()
-//       .populate("author", "id firstName lastName email")
-//       .populate("liked_by", "id")
-//       .sort({ created_at: -1 });
-//     if (!posts) {
-//       return res.status(404).json({ error: "No posts found" });
-//     }
-//     res.status(200).json(posts);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 
 exports.get_posts_list = async (req, res, next) => {
   try {
@@ -59,7 +44,7 @@ exports.get_post = async (req, res, next) => {
 
 exports.create_post = [
   body("content", "Enter post content").trim().isLength({ min: 1 }).escape(),
-  (req, res, next) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.json({
@@ -72,12 +57,14 @@ exports.create_post = [
         content: req.body.content,
         author: req.user.id,
       });
+      const authorDetails = await User.findById(req.user.id);
       post.save((error) => {
         if (error) {
           return next(error);
         }
-        return res.status(200).json(post);
       });
+      post.author = authorDetails;
+      return res.status(200).json(post);
     }
   },
 ];
