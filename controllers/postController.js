@@ -5,10 +5,15 @@ const { body, validationResult } = require("express-validator");
 
 exports.get_posts_list = async (req, res, next) => {
   try {
+    const { page = 1, perPage = 3 } = req.query;
+    const totalPosts = await Post.countDocuments();
+    const totalPages = Math.ceil(totalPosts / perPage);
     const posts = await Post.find()
       .populate("author", "id firstName lastName email profile_pic")
       .populate("liked_by", "id")
-      .sort({ created_at: -1 });
+      .sort({ created_at: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage);
 
     const postsWithComments = [];
 
@@ -20,7 +25,7 @@ exports.get_posts_list = async (req, res, next) => {
       postsWithComments.push({ ...post._doc, comments });
     }
 
-    res.json(postsWithComments);
+    res.json({ posts: postsWithComments, currentPage: page, totalPages });
   } catch (error) {
     next(error);
   }
