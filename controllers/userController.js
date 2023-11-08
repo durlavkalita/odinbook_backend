@@ -17,7 +17,10 @@ exports.get_users_list = async (req, res, next) => {
 
 exports.get_user = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).populate(
+      "friends",
+      "id profile_pic firstName lastName email"
+    );
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
