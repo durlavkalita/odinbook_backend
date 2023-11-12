@@ -31,6 +31,38 @@ exports.get_posts_list = async (req, res, next) => {
   }
 };
 
+exports.get_timeline_posts_list = async (req, res, next) => {
+  try {
+    const current_user = req.user;
+    const timeline_users = [...current_user.friends, current_user._id];
+
+    const { page = 1, perPage = 3 } = req.query;
+    const posts = await Post.find({ author: { $in: timeline_users } })
+      .populate("author", "id firstName lastName email profile_pic")
+      .populate("liked_by", "id")
+      .sort({ created_at: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage);
+
+    const totalPosts = posts.length;
+    const totalPages = Math.ceil(totalPosts / perPage);
+
+    const postsWithComments = [];
+
+    for (const post of posts) {
+      const comments = await Comment.find({ post: post._id }).populate(
+        "author",
+        "id firstName lastName"
+      );
+      postsWithComments.push({ ...post._doc, comments });
+    }
+
+    res.json({ posts: postsWithComments, currentPage: page, totalPages });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.get_post = async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.id)

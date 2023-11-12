@@ -74,7 +74,9 @@ exports.update_user = async (req, res, next) => {
 
 exports.get_new_people = async (req, res, next) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select(
+      "id email firstName lastName profile_pic"
+    );
     if (!users) {
       return res.status(404).json({ error: "No users found" });
     }

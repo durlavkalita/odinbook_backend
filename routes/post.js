@@ -11,6 +11,12 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   postController.get_posts_list
 );
+router.get(
+  "/timeline",
+  getUserData,
+  passport.authenticate("jwt", { session: false }),
+  postController.get_timeline_posts_list
+);
 router.post(
   "/",
   getUserData,
